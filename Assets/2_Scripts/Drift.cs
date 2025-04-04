@@ -11,10 +11,11 @@ public class Drift : MonoBehaviour
     [SerializeField] ParticleSystem smokeRight;
 
     Rigidbody2D rb;
-
+    AudioSource audioSource;
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        audioSource = rb.GetComponent<AudioSource>();
     }
 
     void FixedUpdate()
@@ -43,13 +44,15 @@ public class Drift : MonoBehaviour
         bool isDrift = rb.linearVelocity.magnitude > 2f && MathF.Abs(sidewayVelocity) > 1f;
         if (isDrift)
         {
+            if (!audioSource.isPlaying) audioSource.Play();
             if (!smokeLeft.isPlaying) smokeLeft.Play();
             if (!smokeRight.isPlaying) smokeRight.Play();
         }
         else
         {
-            if (!smokeLeft.isPlaying) { smokeLeft.Stop(); }
-            if (!smokeRight.isPlaying) { smokeRight.Stop(); }
+            if (audioSource.isPlaying) audioSource.Stop();
+            if (smokeLeft.isPlaying)  smokeLeft.Stop(); 
+            if (smokeRight.isPlaying)  smokeRight.Stop(); 
         }
     }
 }
