@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class Drift : MonoBehaviour
@@ -6,6 +7,9 @@ public class Drift : MonoBehaviour
     [SerializeField] float maxSpeed = 10f; //최대속도
     [SerializeField] float steering = 3f; //스티어링
     [SerializeField] float driftFactor = 0.95f; //값이 낮으면 더 미끄러짐
+    [SerializeField] ParticleSystem smokeLeft;
+    [SerializeField] ParticleSystem smokeRight;
+
     Rigidbody2D rb;
 
     void Start()
@@ -29,5 +33,23 @@ public class Drift : MonoBehaviour
         Vector2 sideVelocity = transform.right * Vector2.Dot(rb.linearVelocity, transform.right);
 
         rb.linearVelocity = fowwardVelocity + (sideVelocity * driftFactor);
+    }
+
+
+
+    private void Update()
+    {
+        float sidewayVelocity = Vector2.Dot(rb.linearVelocity, transform.right);
+        bool isDrift = rb.linearVelocity.magnitude > 2f && MathF.Abs(sidewayVelocity) > 1f;
+        if (isDrift)
+        {
+            if (!smokeLeft.isPlaying) smokeLeft.Play();
+            if (!smokeRight.isPlaying) smokeRight.Play();
+        }
+        else
+        {
+            if (!smokeLeft.isPlaying) { smokeLeft.Stop(); }
+            if (!smokeRight.isPlaying) { smokeRight.Stop(); }
+        }
     }
 }
