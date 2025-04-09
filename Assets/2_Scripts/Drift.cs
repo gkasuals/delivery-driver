@@ -3,15 +3,16 @@ using UnityEngine;
 
 public class Drift : MonoBehaviour
 {
-    [SerializeField] float acceleration = 20f; // ¿¸-»ƒ¡¯ ∞°º”µµ 
-    [SerializeField] float maxSpeed = 10f; // √÷¥Îº”µµ
-    [SerializeField] float steering = 3f; // Ω∫∆ºæÓ∏µ
-    [SerializeField] float driftFactor = 0.95f; // ∞™¿Ã ≥∑¿∏∏È ¥ı πÃ≤Ù∑Ø¡¸
+    [SerializeField] float acceleration = 20f;
+    [SerializeField] float maxSpeed = 10f;
+    [SerializeField] float steering = 3f;
+    [SerializeField] float driftFactor = 0.95f;
     [SerializeField] float boostAccelerationRatio = 1.5f;
     [SerializeField] float slowAccelerationRatio = 0.5f;
 
-    [SerializeField] ParticleSystem smokeLeft;
-    [SerializeField] ParticleSystem smokeRight;
+    [SerializeField] float brakeSlowdownFactor = 0.97f; // ‚Üê Î∏åÎ†àÏù¥ÌÅ¨ Í∞êÏÜç ÎπÑÏú®
+    [SerializeField] ParticleSystem smoke;
+
     [SerializeField] TrailRenderer leftTrail;
     [SerializeField] TrailRenderer rightTrail;
 
@@ -30,33 +31,43 @@ public class Drift : MonoBehaviour
     void FixedUpdate()
     {
         float speed = Vector2.Dot(rb.linearVelocity, transform.up);
-        if (speed < maxSpeed)
+
+        if (Input.GetKey(KeyCode.Space))
+        {
+            rb.linearVelocity *= brakeSlowdownFactor;
+            
+        }
+        else if (speed < maxSpeed)
         {
             rb.AddForce(transform.up * Input.GetAxis("Vertical") * acceleration);
+            
         }
 
         float turnAmount = Input.GetAxis("Horizontal") * steering * Mathf.Clamp(speed / maxSpeed, 0.4f, 1f);
         rb.MoveRotation(rb.rotation - turnAmount);
 
         // Drift
-        Vector2 forwardVelocity = transform.up * Vector2.Dot(rb.linearVelocity, transform.up); // fowward °Ê forward
+        Vector2 forwardVelocity = transform.up * Vector2.Dot(rb.linearVelocity, transform.up);
         Vector2 sideVelocity = transform.right * Vector2.Dot(rb.linearVelocity, transform.right);
 
         rb.linearVelocity = forwardVelocity + (sideVelocity * driftFactor);
     }
 
-    private void Update()
+    void Update()
     {
         float sidewayVelocity = Vector2.Dot(rb.linearVelocity, transform.right);
-        bool isDrift = rb.linearVelocity.magnitude > 2f && MathF.Abs(sidewayVelocity) > 1f;
+        bool isDrift = rb.linearVelocity.magnitude > 6f && MathF.Abs(sidewayVelocity) > 6f;
 
         if (isDrift)
         {
             if (!audioSource.isPlaying) audioSource.Play();
+            if (!smoke.isPlaying) smoke.Play();
         }
         else
         {
             if (audioSource.isPlaying) audioSource.Stop();
+            if (smoke.isPlaying) smoke.Stop();
+
         }
 
         leftTrail.emitting = isDrift;
